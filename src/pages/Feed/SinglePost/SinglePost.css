@@ -12,12 +12,6 @@
   border-bottom: 2px solid #464646;
 }
 
-.single-post__image {
-  height: 20rem;
-  width: 20rem;
-  margin: 1rem auto;
-}
-
 @media (min-width: 768px) {
   .single-post {
     width: 40rem;

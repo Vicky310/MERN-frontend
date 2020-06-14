@@ -3,10 +3,7 @@ import React, { Component, Fragment } from 'react';
 import Backdrop from '../../Backdrop/Backdrop';
 import Modal from '../../Modal/Modal';
 import Input from '../../Form/Input/Input';
-import FilePicker from '../../Form/Input/FilePicker';
-import Image from '../../Image/Image';
 import { required, length } from '../../../util/validators';
-import { generateBase64FromImage } from '../../../util/image';
 
 const POST_FORM = {
   title: {
@@ -14,12 +11,6 @@ const POST_FORM = {
     valid: false,
     touched: false,
     validators: [required, length({ min: 5 })]
-  },
-  image: {
-    value: '',
-    valid: false,
-    touched: false,
-    validators: [required]
   },
   content: {
     value: '',
@@ -64,15 +55,6 @@ class FeedEdit extends Component {
   }
 
   postInputChangeHandler = (input, value, files) => {
-    if (files) {
-      generateBase64FromImage(files[0])
-        .then(b64 => {
-          this.setState({ imagePreview: b64 });
-        })
-        .catch(e => {
-          this.setState({ imagePreview: null });
-        });
-    }
     this.setState(prevState => {
       let isValid = true;
       for (const validator of prevState.postForm[input].validators) {
@@ -122,7 +104,6 @@ class FeedEdit extends Component {
   acceptPostChangeHandler = () => {
     const post = {
       title: this.state.postForm.title.value,
-      image: this.state.postForm.image.value,
       content: this.state.postForm.content.value
     };
     this.props.onFinishEdit(post);
@@ -155,21 +136,6 @@ class FeedEdit extends Component {
               touched={this.state.postForm['title'].touched}
               value={this.state.postForm['title'].value}
             />
-            <FilePicker
-              id="image"
-              label="Image"
-              control="input"
-              onChange={this.postInputChangeHandler}
-              onBlur={this.inputBlurHandler.bind(this, 'image')}
-              valid={this.state.postForm['image'].valid}
-              touched={this.state.postForm['image'].touched}
-            />
-            <div className="new-post__preview-image">
-              {!this.state.imagePreview && <p>Please choose an image.</p>}
-              {this.state.imagePreview && (
-                <Image imageUrl={this.state.imagePreview} contain left />
-              )}
-            </div>
             <Input
               id="content"
               label="Content"

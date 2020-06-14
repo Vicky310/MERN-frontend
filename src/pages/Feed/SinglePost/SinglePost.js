@@ -1,6 +1,4 @@
 import React, { Component } from 'react';
-
-import Image from '../../../components/Image/Image';
 import './SinglePost.css';
 
 class SinglePost extends Component {
@@ -8,7 +6,6 @@ class SinglePost extends Component {
     title: '',
     author: '',
     date: '',
-    image: '',
     content: ''
   };
 
@@ -19,7 +16,6 @@ class SinglePost extends Component {
           post(id: $postId) {
             title
             content
-            imageUrl
             creator {
               name
             }
@@ -49,7 +45,6 @@ class SinglePost extends Component {
         this.setState({
           title: resData.data.post.title,
           author: resData.data.post.creator.name,
-          image: 'https://mern-demo-blog.herokuapp.com/' + resData.data.post.imageUrl,
           date: new Date(resData.data.post.createdAt).toLocaleDateString('en-US'),
           content: resData.data.post.content
         });
@@ -66,9 +61,6 @@ class SinglePost extends Component {
         <h2>
           Created by {this.state.author} on {this.state.date}
         </h2>
-        <div className="single-post__image">
-          <Image contain imageUrl={this.state.image} />
-        </div>
         <p>{this.state.content}</p>
       </section>
     );

@@ -74,7 +74,6 @@ class Feed extends Component {
               _id
               title
               content
-              imageUrl
               creator {
                 name
               }
@@ -106,8 +105,7 @@ class Feed extends Component {
         this.setState({
           posts: resData.data.posts.posts.map(post => {
             return {
-              ...post,
-              imagePath: post.imageUrl
+              ...post
             };
           }),
           totalPosts: resData.data.posts.totalPosts,
@@ -174,77 +172,57 @@ class Feed extends Component {
     this.setState({
       editLoading: true
     });
-    const formData = new FormData();
-    formData.append('image', postData.image);
-    if (this.state.editPost) {
-      formData.append('oldPath', this.state.editPost.imagePath);
-    }
-    fetch('https://mern-demo-blog.herokuapp.com/post-image', {
-      method: 'PUT',
-      headers: {
-        Authorization: 'Bearer ' + this.props.token
-      },
-      body: formData
-    })
-      .then(res => res.json())
-      .then(fileResData => {
-        const imageUrl = fileResData.filePath ? fileResData.filePath.replace('\\', '/')
-        : 'undefined';
-        let graphqlQuery = {
-          query: `
-          mutation CreateNewPost($title: String!, $content: String!, $imageUrl: String!) {
-            createPost(postInput: {title: $title, content: $content, imageUrl: $imageUrl}) {
-              _id
-              title
-              content
-              imageUrl
-              creator {
-                name
-              }
-              createdAt
-            }
+    let graphqlQuery;
+    graphqlQuery = {
+      query: `
+      mutation CreateNewPost($title: String!, $content: String!) {
+        createPost(postInput: {title: $title, content: $content}) {
+          _id
+          title
+          content
+          creator {
+            name
           }
-        `,
+          createdAt
+        }
+      }
+    `,
+      variables: {
+        title: postData.title,
+        content: postData.content
+      }
+    };
+    
+      if (this.state.editPost) {
+        graphqlQuery = {
+          query: `
+            mutation UpdateExistingPost($postId: ID!, $title: String!, $content: String!) {
+              updatePost(id: $postId, postInput: {title: $title, content: $content}) {
+                _id
+                title
+                content
+                creator {
+                  name
+                }
+                createdAt
+              }
+            }
+          `,
           variables: {
+            postId: this.state.editPost._id,
             title: postData.title,
-            content: postData.content,
-            imageUrl: imageUrl
+            content: postData.content
           }
         };
+      }
 
-        if (this.state.editPost) {
-          graphqlQuery = {
-            query: `
-              mutation UpdateExistingPost($postId: ID!, $title: String!, $content: String!, $imageUrl: String!) {
-                updatePost(id: $postId, postInput: {title: $title, content: $content, imageUrl: $imageUrl}) {
-                  _id
-                  title
-                  content
-                  imageUrl
-                  creator {
-                    name
-                  }
-                  createdAt
-                }
-              }
-            `,
-            variables: {
-              postId: this.state.editPost._id,
-              title: postData.title,
-              content: postData.content,
-              imageUrl: imageUrl
-            }
-          };
-        }
-
-        return fetch('https://mern-demo-vicky.herokuapp.com/graphql', {
+      fetch('https://mern-demo-vicky.herokuapp.com/graphql', {
           method: 'POST',
           body: JSON.stringify(graphqlQuery),
           headers: {
             Authorization: 'Bearer ' + this.props.token,
             'Content-Type': 'application/json'
           }
-        });
       })
       .then(res => {
         return res.json();
@@ -267,8 +245,7 @@ class Feed extends Component {
           title: resData.data[resDataField].title,
           content: resData.data[resDataField].content,
           creator: resData.data[resDataField].creator,
-          createdAt: resData.data[resDataField].createdAt,
-          imagePath: resData.data[resDataField].imageUrl
+          createdAt: resData.data[resDataField].createdAt
         };
         this.setState(prevState => {
           let updatedPosts = [...prevState.posts];
@@ -335,10 +312,6 @@ class Feed extends Component {
         }
         console.log(resData);
         this.loadPosts();
-        // this.setState(prevState => {
-        //   const updatedPosts = prevState.posts.filter(p => p._id !== postId);
-        //   return { posts: updatedPosts, postsLoading: false };
-        // });
       })
       .catch(err => {
         console.log(err);
@@ -381,7 +354,7 @@ class Feed extends Component {
         </section>
         <section className="feed__control">
           <Button mode="raised" design="accent" onClick={this.newPostHandler}>
-            New Post
+            New Product
           </Button>
         </section>
         <section className="feed">
@@ -407,7 +380,6 @@ class Feed extends Component {
                   author={post.creator.name}
                   date={new Date(post.createdAt).toLocaleDateString('en-US')}
                   title={post.title}
-                  image={post.imageUrl}
                   content={post.content}
                   onStartEdit={this.startEditPostHandler.bind(this, post._id)}
                   onDelete={this.deletePostHandler.bind(this, post._id)}

@@ -1,17 +1,17 @@
 import React from 'react';
 
 import Button from '../../Button/Button';
-import './Post.css';
+import './Product.css';
 
-const post = props => (
-  <article className="post">
-    <header className="post__header">
-      <h3 className="post__meta">
+const product = props => (
+  <article className="product">
+    <header className="product__header">
+      <h3 className="product__meta">
         Posted by {props.author} on {props.date}
       </h3>
-      <h1 className="post__title">{props.title}</h1>
+      <h1 className="product__title">{props.title}</h1>
     </header>
-    <div className="post__actions">
+    <div className="product__actions">
       <Button mode="flat" link={props.id}>
         View
       </Button>
@@ -25,4 +25,4 @@ const post = props => (
   </article>
 );
 
-export default post;
+export default product;

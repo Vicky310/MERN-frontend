@@ -1,11 +1,11 @@
-.single-post {
+.single-product {
   width: 90%;
   margin: auto;
   text-align: center;
   color: #3b0062;
 }
 
-.single-post h2 {
+.single-product h2 {
   font-size: 1rem;
   color: #464646;
   padding-bottom: 1rem;
@@ -13,7 +13,7 @@
 }
 
 @media (min-width: 768px) {
-  .single-post {
+  .single-product {
     width: 40rem;
   }
 }

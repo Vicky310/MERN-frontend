@@ -1,21 +1,23 @@
 import React, { Component } from 'react';
-import './SinglePost.css';
+import './SingleProduct.css';
 
-class SinglePost extends Component {
+class SingleProduct extends Component {
   state = {
     title: '',
     author: '',
+    price: '',
     date: '',
-    content: ''
+    description: ''
   };
 
   componentDidMount() {
-    const postId = this.props.match.params.postId;
+    const productId = this.props.match.params.productId;
     const graphqlQuery = {
-      query: `query FetchSinglePost($postId: ID!) {
-          post(id: $postId) {
+      query: `query FetchSingleProduct($productId: ID!) {
+          product(id: $productId) {
             title
-            content
+            price
+            description
             creator {
               name
             }
@@ -24,7 +26,7 @@ class SinglePost extends Component {
         }
       `,
       variables: {
-        postId: postId
+        productId: productId
       }
     };
     fetch('https://mern-demo-vicky.herokuapp.com/graphql', {
@@ -40,13 +42,14 @@ class SinglePost extends Component {
       })
       .then(resData => {
         if (resData.errors) {
-          throw new Error('Fetching post failed!');
+          throw new Error('Fetching product failed!');
         }
         this.setState({
-          title: resData.data.post.title,
-          author: resData.data.post.creator.name,
-          date: new Date(resData.data.post.createdAt).toLocaleDateString('en-US'),
-          content: resData.data.post.content
+          title: resData.data.product.title,
+          author: resData.data.product.creator.name,
+          date: new Date(resData.data.product.createdAt).toLocaleDateString('en-US'),
+          price: resData.data.product.price,
+          description: resData.data.product.description
         });
       })
       .catch(err => {
@@ -56,15 +59,16 @@ class SinglePost extends Component {
 
   render() {
     return (
-      <section className="single-post">
+      <section className="single-product">
         <h1>{this.state.title}</h1>
         <h2>
           Created by {this.state.author} on {this.state.date}
         </h2>
-        <p>{this.state.content}</p>
+        <h1>Price: ${this.state.price}</h1>
+        <p>{this.state.description}</p>
       </section>
     );
   }
 }
 
-export default SinglePost;
+export default SingleProduct;

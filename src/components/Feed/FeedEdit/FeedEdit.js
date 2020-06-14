@@ -5,14 +5,20 @@ import Modal from '../../Modal/Modal';
 import Input from '../../Form/Input/Input';
 import { required, length } from '../../../util/validators';
 
-const POST_FORM = {
+const PRODUCT_FORM = {
   title: {
     value: '',
     valid: false,
     touched: false,
     validators: [required, length({ min: 5 })]
   },
-  content: {
+  price: {
+    value: '',
+    valid: false,
+    touched: false,
+    validators: [required]
+  },
+  description: {
     value: '',
     valid: false,
     touched: false,
@@ -22,7 +28,7 @@ const POST_FORM = {
 
 class FeedEdit extends Component {
   state = {
-    postForm: POST_FORM,
+    productForm: PRODUCT_FORM,
     formIsValid: false,
     imagePreview: null
   };
@@ -31,39 +37,39 @@ class FeedEdit extends Component {
     if (
       this.props.editing &&
       prevProps.editing !== this.props.editing &&
-      prevProps.selectedPost !== this.props.selectedPost
+      prevProps.selectedProduct !== this.props.selectedProduct
     ) {
-      const postForm = {
+      const productForm = {
         title: {
-          ...prevState.postForm.title,
-          value: this.props.selectedPost.title,
+          ...prevState.productForm.title,
+          value: this.props.selectedProduct.title,
           valid: true
         },
-        image: {
-          ...prevState.postForm.image,
-          value: this.props.selectedPost.imagePath,
+        price: {
+          ...prevState.productForm.price,
+          value: this.props.selectedProduct.price,
           valid: true
         },
-        content: {
-          ...prevState.postForm.content,
-          value: this.props.selectedPost.content,
+        description: {
+          ...prevState.productForm.description,
+          value: this.props.selectedProduct.description,
           valid: true
         }
       };
-      this.setState({ postForm: postForm, formIsValid: true });
+      this.setState({ productForm: productForm, formIsValid: true });
     }
   }
 
-  postInputChangeHandler = (input, value, files) => {
+  productInputChangeHandler = (input, value, files) => {
     this.setState(prevState => {
       let isValid = true;
-      for (const validator of prevState.postForm[input].validators) {
+      for (const validator of prevState.productForm[input].validators) {
         isValid = isValid && validator(value);
       }
       const updatedForm = {
-        ...prevState.postForm,
+        ...prevState.productForm,
         [input]: {
-          ...prevState.postForm[input],
+          ...prevState.productForm[input],
           valid: isValid,
           value: files ? files[0] : value
         }
@@ -73,7 +79,7 @@ class FeedEdit extends Component {
         formIsValid = formIsValid && updatedForm[inputName].valid;
       }
       return {
-        postForm: updatedForm,
+        productForm: updatedForm,
         formIsValid: formIsValid
       };
     });
@@ -82,10 +88,10 @@ class FeedEdit extends Component {
   inputBlurHandler = input => {
     this.setState(prevState => {
       return {
-        postForm: {
-          ...prevState.postForm,
+        productForm: {
+          ...prevState.productForm,
           [input]: {
-            ...prevState.postForm[input],
+            ...prevState.productForm[input],
             touched: true
           }
         }
@@ -93,22 +99,23 @@ class FeedEdit extends Component {
     });
   };
 
-  cancelPostChangeHandler = () => {
+  cancelProductChangeHandler = () => {
     this.setState({
-      postForm: POST_FORM,
+      productForm: PRODUCT_FORM,
       formIsValid: false
     });
     this.props.onCancelEdit();
   };
 
-  acceptPostChangeHandler = () => {
-    const post = {
-      title: this.state.postForm.title.value,
-      content: this.state.postForm.content.value
+  acceptProductChangeHandler = () => {
+    const product = {
+      title: this.state.productForm.title.value,
+      price: this.state.productForm.price.value,
+      description: this.state.productForm.description.value
     };
-    this.props.onFinishEdit(post);
+    this.props.onFinishEdit(product);
     this.setState({
-      postForm: POST_FORM,
+      productForm: PRODUCT_FORM,
       formIsValid: false,
       imagePreview: null
     });
@@ -117,12 +124,12 @@ class FeedEdit extends Component {
   render() {
     return this.props.editing ? (
       <Fragment>
-        <Backdrop onClick={this.cancelPostChangeHandler} />
+        <Backdrop onClick={this.cancelProductChangeHandler} />
         <Modal
-          title="New Post"
+          title="New Product"
           acceptEnabled={this.state.formIsValid}
-          onCancelModal={this.cancelPostChangeHandler}
-          onAcceptModal={this.acceptPostChangeHandler}
+          onCancelModal={this.cancelProductChangeHandler}
+          onAcceptModal={this.acceptProductChangeHandler}
           isLoading={this.props.loading}
         >
           <form>
@@ -130,22 +137,33 @@ class FeedEdit extends Component {
               id="title"
               label="Title"
               control="input"
-              onChange={this.postInputChangeHandler}
+              onChange={this.productInputChangeHandler}
               onBlur={this.inputBlurHandler.bind(this, 'title')}
-              valid={this.state.postForm['title'].valid}
-              touched={this.state.postForm['title'].touched}
-              value={this.state.postForm['title'].value}
+              valid={this.state.productForm['title'].valid}
+              touched={this.state.productForm['title'].touched}
+              value={this.state.productForm['title'].value}
             />
             <Input
-              id="content"
-              label="Content"
+              id="price"
+              label="Price $"
+              control="input"
+              type="number"
+              onChange={this.productInputChangeHandler}
+              onBlur={this.inputBlurHandler.bind(this, 'price')}
+              valid={this.state.productForm['price'].valid}
+              touched={this.state.productForm['price'].touched}
+              value={this.state.productForm['price'].value}
+            />
+            <Input
+              id="description"
+              label="Description"
               control="textarea"
               rows="5"
-              onChange={this.postInputChangeHandler}
-              onBlur={this.inputBlurHandler.bind(this, 'content')}
-              valid={this.state.postForm['content'].valid}
-              touched={this.state.postForm['content'].touched}
-              value={this.state.postForm['content'].value}
+              onChange={this.productInputChangeHandler}
+              onBlur={this.inputBlurHandler.bind(this, 'description')}
+              valid={this.state.productForm['description'].valid}
+              touched={this.state.productForm['description'].touched}
+              value={this.state.productForm['description'].value}
             />
           </form>
         </Modal>

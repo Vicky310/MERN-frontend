@@ -8,7 +8,7 @@ import MainNavigation from './components/Navigation/MainNavigation/MainNavigatio
 import MobileNavigation from './components/Navigation/MobileNavigation/MobileNavigation';
 import ErrorHandler from './components/ErrorHandler/ErrorHandler';
 import FeedPage from './pages/Feed/Feed';
-import SinglePostPage from './pages/Feed/SinglePost/SinglePost';
+import SingleProductPage from './pages/Feed/SingleProduct/SingleProduct';
 import LoginPage from './pages/Auth/Login';
 import './App.css';
 
@@ -156,9 +156,9 @@ class App extends Component {
             )}
           />
           <Route
-            path="/:postId"
+            path="/:productId"
             render={props => (
-              <SinglePostPage
+              <SingleProductPage
                 {...props}
                 userId={this.state.userId}
                 token={this.state.token}

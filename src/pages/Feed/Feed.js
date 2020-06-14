@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from 'react';
 
-import Post from '../../components/Feed/Post/Post';
+import Product from '../../components/Feed/Product/Product';
 import Button from '../../components/Button/Button';
 import FeedEdit from '../../components/Feed/FeedEdit/FeedEdit';
 import Input from '../../components/Form/Input/Input';
@@ -12,12 +12,12 @@ import './Feed.css';
 class Feed extends Component {
   state = {
     isEditing: false,
-    posts: [],
-    totalPosts: 0,
-    editPost: null,
+    products: [],
+    totalProducts: 0,
+    editProduct: null,
     status: '',
-    postPage: 1,
-    postsLoading: true,
+    productPage: 1,
+    productsLoading: true,
     editLoading: false
   };
 
@@ -50,36 +50,37 @@ class Feed extends Component {
       })
       .catch(this.catchError);
 
-    this.loadPosts();
+    this.loadProducts();
   }
 
-  loadPosts = direction => {
+  loadProducts = direction => {
     if (direction) {
-      this.setState({ postsLoading: true, posts: [] });
+      this.setState({ productsLoading: true, products: [] });
     }
-    let page = this.state.postPage;
+    let page = this.state.productPage;
     if (direction === 'next') {
       page++;
-      this.setState({ postPage: page });
+      this.setState({ productPage: page });
     }
     if (direction === 'previous') {
       page--;
-      this.setState({ postPage: page });
+      this.setState({ productPage: page });
     }
     const graphqlQuery = {
       query: `
-        query FetchPosts($page: Int) {
-          posts(page: $page) {
-            posts {
+        query FetchProducts($page: Int) {
+          products(page: $page) {
+            products {
               _id
               title
-              content
+              price
+              description
               creator {
                 name
               }
               createdAt
             }
-            totalPosts
+            totalProducts
           }
         }
       `,
@@ -100,16 +101,16 @@ class Feed extends Component {
       })
       .then(resData => {
         if (resData.errors) {
-          throw new Error('Fetching posts failed!');
+          throw new Error('Fetching products failed!');
         }
         this.setState({
-          posts: resData.data.posts.posts.map(post => {
+          products: resData.data.products.products.map(product => {
             return {
-              ...post
+              ...product
             };
           }),
-          totalPosts: resData.data.posts.totalPosts,
-          postsLoading: false
+          totalProducts: resData.data.products.totalProducts,
+          productsLoading: false
         });
       })
       .catch(this.catchError);
@@ -142,44 +143,45 @@ class Feed extends Component {
       })
       .then(resData => {
         if (resData.errors) {
-          throw new Error('Fetching posts failed!');
+          throw new Error('Fetching products failed!');
         }
         console.log(resData);
       })
       .catch(this.catchError);
   };
 
-  newPostHandler = () => {
+  newProductHandler = () => {
     this.setState({ isEditing: true });
   };
 
-  startEditPostHandler = postId => {
+  startEditProductHandler = productId => {
     this.setState(prevState => {
-      const loadedPost = { ...prevState.posts.find(p => p._id === postId) };
+      const loadedProduct = { ...prevState.products.find(p => p._id === productId) };
 
       return {
         isEditing: true,
-        editPost: loadedPost
+        editProduct: loadedProduct
       };
     });
   };
 
   cancelEditHandler = () => {
-    this.setState({ isEditing: false, editPost: null });
+    this.setState({ isEditing: false, editProduct: null });
   };
 
-  finishEditHandler = postData => {
+  finishEditHandler = productData => {
     this.setState({
       editLoading: true
     });
     let graphqlQuery;
     graphqlQuery = {
       query: `
-      mutation CreateNewPost($title: String!, $content: String!) {
-        createPost(postInput: {title: $title, content: $content}) {
+      mutation CreateNewProduct($title: String!, $price: String!, $description: String!) {
+        createProduct(productInput: {title: $title, price: $price, description: $description}) {
           _id
           title
-          content
+          price
+          description
           creator {
             name
           }
@@ -188,19 +190,21 @@ class Feed extends Component {
       }
     `,
       variables: {
-        title: postData.title,
-        content: postData.content
+        title: productData.title,
+        price: productData.price,
+        description: productData.description
       }
     };
     
-      if (this.state.editPost) {
+      if (this.state.editProduct) {
         graphqlQuery = {
           query: `
-            mutation UpdateExistingPost($postId: ID!, $title: String!, $content: String!) {
-              updatePost(id: $postId, postInput: {title: $title, content: $content}) {
+            mutation UpdateExistingProduct($productId: ID!, $title: String!, $price: String!, $description: String!) {
+              updateProduct(id: $productId, productInput: {title: $title, price: $price, description: $description}) {
                 _id
                 title
-                content
+                price
+                description
                 creator {
                   name
                 }
@@ -209,9 +213,10 @@ class Feed extends Component {
             }
           `,
           variables: {
-            postId: this.state.editPost._id,
-            title: postData.title,
-            content: postData.content
+            productId: this.state.editProduct._id,
+            title: productData.title,
+            price: productData.price,
+            description: productData.description
           }
         };
       }
@@ -236,38 +241,39 @@ class Feed extends Component {
         if (resData.errors) {
           throw new Error('User login failed!');
         }
-        let resDataField = 'createPost';
-        if (this.state.editPost) {
-          resDataField = 'updatePost';
+        let resDataField = 'createProduct';
+        if (this.state.editProduct) {
+          resDataField = 'updateProduct';
         }
-        const post = {
+        const product = {
           _id: resData.data[resDataField]._id,
           title: resData.data[resDataField].title,
-          content: resData.data[resDataField].content,
+          price: resData.data[resDataField].price,
+          description: resData.data[resDataField].description,
           creator: resData.data[resDataField].creator,
           createdAt: resData.data[resDataField].createdAt
         };
         this.setState(prevState => {
-          let updatedPosts = [...prevState.posts];
-          let updatedTotalPosts = prevState.totalPosts;
-          if (prevState.editPost) {
-            const postIndex = prevState.posts.findIndex(
-              p => p._id === prevState.editPost._id
+          let updatedProducts = [...prevState.products];
+          let updatedTotalProducts = prevState.totalProducts;
+          if (prevState.editProduct) {
+            const productIndex = prevState.products.findIndex(
+              p => p._id === prevState.editProduct._id
             );
-            updatedPosts[postIndex] = post;
+            updatedProducts[productIndex] = product;
           } else {
-            updatedTotalPosts++;
-            if (prevState.posts.length >= 2) {
-              updatedPosts.pop();
+            updatedTotalProducts++;
+            if (prevState.products.length >= 2) {
+              updatedProducts.pop();
             }
-            updatedPosts.unshift(post);
+            updatedProducts.unshift(product);
           }
           return {
-            posts: updatedPosts,
+            products: updatedProducts,
             isEditing: false,
-            editPost: null,
+            editProduct: null,
             editLoading: false,
-            totalPosts: updatedTotalPosts
+            totalProducts: updatedTotalProducts
           };
         });
       })
@@ -275,7 +281,7 @@ class Feed extends Component {
         console.log(err);
         this.setState({
           isEditing: false,
-          editPost: null,
+          editProduct: null,
           editLoading: false,
           error: err
         });
@@ -286,12 +292,12 @@ class Feed extends Component {
     this.setState({ status: value });
   };
 
-  deletePostHandler = postId => {
-    this.setState({ postsLoading: true });
+  deleteProductHandler = productId => {
+    this.setState({ productsLoading: true });
     const graphqlQuery = {
       query: `
         mutation {
-          deletePost(id: "${postId}")
+          deleteProduct(id: "${productId}")
         }
       `
     };
@@ -308,14 +314,14 @@ class Feed extends Component {
       })
       .then(resData => {
         if (resData.errors) {
-          throw new Error('Deleting the post failed!');
+          throw new Error('Deleting the product failed!');
         }
         console.log(resData);
-        this.loadPosts();
+        this.loadProducts();
       })
       .catch(err => {
         console.log(err);
-        this.setState({ postsLoading: false });
+        this.setState({ productsLoading: false });
       });
   };
 
@@ -333,7 +339,7 @@ class Feed extends Component {
         <ErrorHandler error={this.state.error} onHandle={this.errorHandler} />
         <FeedEdit
           editing={this.state.isEditing}
-          selectedPost={this.state.editPost}
+          selectedProduct={this.state.editProduct}
           loading={this.state.editLoading}
           onCancelEdit={this.cancelEditHandler}
           onFinishEdit={this.finishEditHandler}
@@ -353,36 +359,37 @@ class Feed extends Component {
           </form>
         </section>
         <section className="feed__control">
-          <Button mode="raised" design="accent" onClick={this.newPostHandler}>
+          <Button mode="raised" design="accent" onClick={this.newProductHandler}>
             New Product
           </Button>
         </section>
         <section className="feed">
-          {this.state.postsLoading && (
+          {this.state.productsLoading && (
             <div style={{ textAlign: 'center', marginTop: '2rem' }}>
               <Loader />
             </div>
           )}
-          {this.state.posts.length <= 0 && !this.state.postsLoading ? (
-            <p style={{ textAlign: 'center' }}>No posts found.</p>
+          {this.state.products.length <= 0 && !this.state.productsLoading ? (
+            <p style={{ textAlign: 'center' }}>No products found.</p>
           ) : null}
-          {!this.state.postsLoading && (
+          {!this.state.productsLoading && (
             <Paginator
-              onPrevious={this.loadPosts.bind(this, 'previous')}
-              onNext={this.loadPosts.bind(this, 'next')}
-              lastPage={Math.ceil(this.state.totalPosts / 2)}
-              currentPage={this.state.postPage}
+              onPrevious={this.loadProducts.bind(this, 'previous')}
+              onNext={this.loadProducts.bind(this, 'next')}
+              lastPage={Math.ceil(this.state.totalProducts / 2)}
+              currentPage={this.state.productPage}
             >
-              {this.state.posts.map(post => (
-                <Post
-                  key={post._id}
-                  id={post._id}
-                  author={post.creator.name}
-                  date={new Date(post.createdAt).toLocaleDateString('en-US')}
-                  title={post.title}
-                  content={post.content}
-                  onStartEdit={this.startEditPostHandler.bind(this, post._id)}
-                  onDelete={this.deletePostHandler.bind(this, post._id)}
+              {this.state.products.map(product => (
+                <Product
+                  key={product._id}
+                  id={product._id}
+                  author={product.creator.name}
+                  date={new Date(product.createdAt).toLocaleDateString('en-US')}
+                  title={product.title}
+                  price={product.price}
+                  description={product.description}
+                  onStartEdit={this.startEditProductHandler.bind(this, product._id)}
+                  onDelete={this.deleteProductHandler.bind(this, product._id)}
                 />
               ))}
             </Paginator>

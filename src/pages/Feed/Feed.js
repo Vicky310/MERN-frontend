@@ -145,7 +145,6 @@ class Feed extends Component {
         if (resData.errors) {
           throw new Error('Fetching products failed!');
         }
-        console.log(resData);
       })
       .catch(this.catchError);
   };
@@ -316,7 +315,6 @@ class Feed extends Component {
         if (resData.errors) {
           throw new Error('Deleting the product failed!');
         }
-        console.log(resData);
         this.loadProducts();
       })
       .catch(err => {
